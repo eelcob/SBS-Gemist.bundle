@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-import re
 from PMS import *
-from PMS.Objects import *
-from PMS.Shortcuts import *
+import re
 
 ###################################################################################################
 
@@ -12,34 +10,32 @@ PLUGIN_PREFIX               = '/video/sbsgemist'
 CHANNELS = {
   'NET5': {
     'base': 'http://www.net5.nl',
-    'home': '/web/show/id=95681/langid=43',
+    'home': '/web/show/id=1017155',
     'art': 'art-net5.png',
     'icon': 'icon-net5.png'
   },
   'SBS6': {
     'base': 'http://www.sbs6.nl',
-    'home': '/web/show/id=73863/langid=43',
+    'home': '/web/show/id=985609',
     'art': 'art-sbs6.png',
     'icon': 'icon-sbs6.png'
   },
   'Veronica': {
     'base': 'http://www.veronicatv.nl',
-    'home': '/web/show/id=96520/langid=43',
+    'home': '/web/show/id=997234',
     'art': 'art-veronica.png',
     'icon': 'icon-veronica.png'
   }
 }
 
-CHANNEL_ORDER               = ['NET5', 'SBS6', 'Veronica']
-PAGE_NUM                    = '/page=%d'
+CHANNEL_ORDER               = ('NET5', 'SBS6', 'Veronica')
 SILVERLIGHT_PLAYER          = 'http://www.plexapp.com/player/silverlight.php?stream=%s&width=%s&height=%s'
 
 # 2 programs that haven't got episodes, instead the menu item links directly to the latest episode (local 'news' and weather)
-DIFFERENT                   = ['Hart van Nederland', 'Piets Weerbericht']
+DIFFERENT                   = ('Hart van Nederland', 'Piets Weerbericht')
 
 # XPATH_PROGRAMS_PAGES is so specific to prevent capturing the wrong pagination navigation
-XPATH_PROGRAMS_PAGES        = '/html/body//h3[contains(.,"Programma gemist overzicht")]/parent::div/parent::div//div[@class="paginator"]//a'
-XPATH_PROGRAMS              = '/html/body//h3[contains(.,"Programma gemist overzicht")]/parent::div/parent::div//span[@class="title"]/a[@href]'
+XPATH_PROGRAMS              = '/html/body//h3[contains(.,"Programma Gemist overzicht") or contains(.,"Programma gemist overzicht")]/parent::div/parent::div//span[@class="title"]/a[@href]'
 XPATH_EPISODES              = '/html/body//div[@class="block-large"]//div[contains(@class,"item")]'
 
 # Art and icons
@@ -79,23 +75,17 @@ def Programs(sender, c):
   dir = MediaContainer(title2=c, art=R(CHANNELS[c]['art']))
   url = CHANNELS[c]['base'] + CHANNELS[c]['home']
 
-  # Find out how many pages there are
-  numPages = len( XML.ElementFromURL(url, isHTML=True, errors='ignore').xpath(XPATH_PROGRAMS_PAGES) )
-  if numPages == 0:
-    numPages = 1
+  content = XML.ElementFromURL(url, isHTML=True, errors='ignore')
+  programs = content.xpath(XPATH_PROGRAMS)
 
-  for i in range(1, numPages+1):
-    content = XML.ElementFromURL(url + (PAGE_NUM % i), isHTML=True, errors='ignore')
-    programs = content.xpath(XPATH_PROGRAMS)
+  for p in programs:
+    title = p.xpath('./text()')[0].strip()
+    programUrl = p.get('href')
 
-    for p in programs:
-      title = p.xpath('./text()')[0].strip()
-      programUrl = p.get('href')
-
-      if title in DIFFERENT:
-        dir.Append(Function(VideoItem(PlayVideo, title=title, thumb=R(CHANNELS[c]['icon'])), url=programUrl))
-      else:
-        dir.Append(Function(DirectoryItem(Episodes, title=title, thumb=R(CHANNELS[c]['icon'])), title=title, url=CHANNELS[c]['base']+programUrl, c=c))
+    if title in DIFFERENT:
+      dir.Append(Function(VideoItem(PlayVideo, title=title, thumb=R(CHANNELS[c]['icon'])), url=programUrl))
+    else:
+      dir.Append(Function(DirectoryItem(Episodes, title=title, thumb=R(CHANNELS[c]['icon'])), title=title, url=CHANNELS[c]['base']+programUrl, c=c))
 
   return dir
 
