@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from PMS import *
 import re
 
 ###################################################################################################
@@ -75,7 +74,7 @@ def Programs(sender, c):
   dir = MediaContainer(title2=c, art=R(CHANNELS[c]['art']))
   url = CHANNELS[c]['base'] + CHANNELS[c]['home']
 
-  content = XML.ElementFromURL(url, isHTML=True, errors='ignore')
+  content = HTML.ElementFromURL(url, errors='ignore')
   programs = content.xpath(XPATH_PROGRAMS)
 
   for p in programs:
@@ -94,8 +93,8 @@ def Programs(sender, c):
 def Episodes(sender, title, url, c):
   dir = MediaContainer(viewGroup='Details', title2=title, art=R(CHANNELS[c]['art']))
 
-  eps = HTTP.Request(url, errors='ignore')
-  episodes = XML.ElementFromString(eps, isHTML=True).xpath(XPATH_EPISODES)
+  eps = HTTP.Request(url, errors='ignore').content
+  episodes = HTML.ElementFromString(eps).xpath(XPATH_EPISODES)
   for episode in episodes:
     epTitle = episode.xpath('./div[@class="title"]/a/span')[0].text
     epAirtime = episode.xpath('./div[@class="airtime"]/a/span')[0].text
@@ -104,7 +103,7 @@ def Episodes(sender, title, url, c):
     epUrl = CHANNELS[c]['base'] + episode.xpath('./div[@class="title"]/a')[0].get('href')
     dir.Append(Function(VideoItem(PlayVideo, title=epTitle, subtitle=epAirtime, summary=epSummary, thumb=epThumb), url=epUrl))
 
-  next = XML.ElementFromString(eps, isHTML=True).xpath('/html/body//span[@class="next"]/a')
+  next = HTML.ElementFromString(eps).xpath('/html/body//span[@class="next"]/a')
   if len(next) == 1:
     nextUrl = CHANNELS[c]['base'] + next[0].get('href')
     dir.Append(Function(DirectoryItem(Episodes, title='Meer ...', thumb=R(ICON_MORE)), title=title, url=nextUrl, c=c))
@@ -114,8 +113,8 @@ def Episodes(sender, title, url, c):
 ####################################################################################################
 
 def PlayVideo(sender, url):
-  content = HTTP.Request(url, cacheTime=0)
-  content = HTTP.Request(url, cacheTime=0) # Intentionally!
+  content = HTTP.Request(url, cacheTime=0).content
+  content = HTTP.Request(url, cacheTime=0).content # Intentionally!
 
   # Almost all videos on the website are in Windows Media format (Silverlight), except for a couple program that have Flash videos
   # The Silverlight stuff uses the Silverlight player on plexapp.com, for the Flash stuff links to the .flv files are looked up
@@ -126,7 +125,7 @@ def PlayVideo(sender, url):
   else:
     vid = re.compile('(http://playlist.sbsnet.nl/flv/(.+?))"').findall(content, re.DOTALL)
     if len(vid) > 0:
-      playlist = HTTP.Request(vid[0][0], errors='ignore')
+      playlist = HTTP.Request(vid[0][0], errors='ignore').content
       vid = re.compile('<location>(.+?)</location>').findall(playlist, re.DOTALL)
       if len(vid) > 0:
         return Redirect(vid[0])
