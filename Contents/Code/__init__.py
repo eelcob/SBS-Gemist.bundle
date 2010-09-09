@@ -7,13 +7,13 @@ PLUGIN_TITLE                = 'SBS Gemist'
 PLUGIN_PREFIX               = '/video/sbsgemist'
 
 CHANNELS = {
-  'NET5': {
+  'NET 5': {
     'base': 'http://www.net5.nl',
     'home': '/web/show/id=1017155',
     'art': 'art-net5.png',
     'icon': 'icon-net5.png'
   },
-  'SBS6': {
+  'SBS 6': {
     'base': 'http://www.sbs6.nl',
     'home': '/web/show/id=985609',
     'art': 'art-sbs6.png',
@@ -27,7 +27,7 @@ CHANNELS = {
   }
 }
 
-CHANNEL_ORDER               = ('NET5', 'SBS6', 'Veronica')
+CHANNEL_ORDER               = ('NET 5', 'SBS 6', 'Veronica')
 SILVERLIGHT_PLAYER          = 'http://www.plexapp.com/player/silverlight.php?stream=%s&width=%s&height=%s'
 
 # 2 programs that haven't got episodes, instead the menu item links directly to the latest episode (local 'news' and weather)
@@ -55,8 +55,8 @@ def Start():
   MediaContainer.art       = R(ART_DEFAULT)
 
   # Set the default cache time
-  HTTP.SetCacheTime(CACHE_1HOUR)
-  HTTP.SetHeader('User-agent', 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2) Gecko/20100115 Firefox/3.6')
+  HTTP.CacheTime = 3600
+  HTTP.Headers['User-agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.4) Gecko/20100611 Firefox/3.6.4'
 
 ###################################################################################################
 
@@ -74,17 +74,18 @@ def Programs(sender, c):
   dir = MediaContainer(title2=c, art=R(CHANNELS[c]['art']))
   url = CHANNELS[c]['base'] + CHANNELS[c]['home']
 
-  content = HTML.ElementFromURL(url, errors='ignore')
-  programs = content.xpath(XPATH_PROGRAMS)
-
-  for p in programs:
+  programmes = HTML.ElementFromURL(url, errors='ignore').xpath(XPATH_PROGRAMS)
+  for p in programmes:
     title = p.xpath('./text()')[0].strip()
-    programUrl = p.get('href')
 
-    if title in DIFFERENT:
-      dir.Append(Function(VideoItem(PlayVideo, title=title, thumb=R(CHANNELS[c]['icon'])), url=programUrl))
-    else:
-      dir.Append(Function(DirectoryItem(Episodes, title=title, thumb=R(CHANNELS[c]['icon'])), title=title, url=CHANNELS[c]['base']+programUrl, c=c))
+    # Filter out Wimbledon stuff for Net 5
+    if title.find('Wimbledon') == -1:
+      programUrl = p.get('href')
+
+      if title in DIFFERENT:
+        dir.Append(Function(VideoItem(PlayVideo, title=title, thumb=R(CHANNELS[c]['icon'])), url=programUrl))
+      else:
+        dir.Append(Function(DirectoryItem(Episodes, title=title, thumb=R(CHANNELS[c]['icon'])), title=title, url=CHANNELS[c]['base']+programUrl, c=c))
 
   return dir
 
@@ -93,20 +94,19 @@ def Programs(sender, c):
 def Episodes(sender, title, url, c):
   dir = MediaContainer(viewGroup='Details', title2=title, art=R(CHANNELS[c]['art']))
 
-  eps = HTTP.Request(url, errors='ignore').content
-  episodes = HTML.ElementFromString(eps).xpath(XPATH_EPISODES)
-  for episode in episodes:
-    epTitle = episode.xpath('./div[@class="title"]/a/span')[0].text
-    epAirtime = episode.xpath('./div[@class="airtime"]/a/span')[0].text
-    epSummary = episode.xpath('./div[@class="text"]/a/span')[0].text
-    epThumb = CHANNELS[c]['base'] + episode.xpath('./div[@class="thumb"]/a/img')[0].get('src')
-    epUrl = CHANNELS[c]['base'] + episode.xpath('./div[@class="title"]/a')[0].get('href')
-    dir.Append(Function(VideoItem(PlayVideo, title=epTitle, subtitle=epAirtime, summary=epSummary, thumb=epThumb), url=epUrl))
+  episodes = HTML.ElementFromURL(url, errors='ignore').xpath(XPATH_EPISODES)
+  for e in episodes:
+    ep_title = e.xpath('./div[@class="title"]/a/span')[0].text
+    airtime = e.xpath('./div[@class="airtime"]/a/span')[0].text
+    summary = e.xpath('./div[@class="text"]/a/span')[0].text
+    thumb = CHANNELS[c]['base'] + e.xpath('./div[@class="thumb"]/a/img')[0].get('src')
+    ep_url = CHANNELS[c]['base'] + e.xpath('./div[@class="title"]/a')[0].get('href')
+    dir.Append(Function(VideoItem(PlayVideo, title=ep_title, subtitle=airtime, summary=summary, thumb=thumb), url=ep_url))
 
-  next = HTML.ElementFromString(eps).xpath('/html/body//span[@class="next"]/a')
+  next = HTML.ElementFromURL(url, errors='ignore').xpath('/html/body//span[@class="next"]/a')
   if len(next) == 1:
-    nextUrl = CHANNELS[c]['base'] + next[0].get('href')
-    dir.Append(Function(DirectoryItem(Episodes, title='Meer ...', thumb=R(ICON_MORE)), title=title, url=nextUrl, c=c))
+    next_url = CHANNELS[c]['base'] + next[0].get('href')
+    dir.Append(Function(DirectoryItem(Episodes, title='Meer...', thumb=R(ICON_MORE)), title=title, url=next_url, c=c))
 
   return dir
 
@@ -129,7 +129,4 @@ def PlayVideo(sender, url):
       vid = re.compile('<location>(.+?)</location>').findall(playlist, re.DOTALL)
       if len(vid) > 0:
         return Redirect(vid[0])
-      else:
-        return None
-    else:
-      return None
+  return None
