@@ -17,16 +17,22 @@
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
 	<key>PlexAudioCodec</key>
-	<string>WMA2</string>
+	<array>
+		<string>WMA2</string>
+	</array>
 	<key>PlexClientPlatforms</key>
 	<string>MacOSX</string>
 	<key>PlexFrameworkVersion</key>
 	<string>2</string>
 	<key>PlexMediaContainer</key>
-	<string>WMV</string>
+	<array>
+		<string>WMV</string>
+	</array>
 	<key>PlexPluginMode</key>
 	<string>AlwaysOn</string>
 	<key>PlexVideoCodec</key>
-	<string>VC-1</string>
+	<array>
+		<string>VC-1</string>
+	</array>
 </dict>
 </plist>
