@@ -1,0 +1,23 @@
+{
+	"Title": "SBS-Gemist",
+	"Club": "Club",
+	"Competition": "Competition",
+	"Round": "Playround",
+	"ClipError": "Couldn't add clip",
+	"WebError": "Cannot reach website",
+	"More": "More Clips",
+	"NoVideo": "No Videos",
+	"NoClips": "No programs found for this catagory",
+	"Popular": "Popular",
+	"09": "0-9",
+	"ABC": "ABC",
+	"DEF": "DEF",
+	"GHI": "GHI",
+	"JKL": "JKL",
+	"MNO": "MNO",
+	"PQR": "PQR",
+	"STUV": "STUV",
+	"WXYZ": "WXYZ",
+	"StartingWith": "Programs starting with",
+	"ImageError": "No image found"
+}

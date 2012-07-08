@@ -1,0 +1,148 @@
+# -*- coding: utf-8 -*-
+AMF_URL = 'http://c.brightcove.com/services/messagebroker/amf'
+
+PLAYER_KEY 	= Regex('\\\\"playerKey\\\\" value=\\\\"([^"]+)\\\\"', Regex.DOTALL)
+PLAYER_ID	= Regex('\\\\"playerID\\\\" value=\\\\"([^"]+)\\\\"', Regex.DOTALL)
+PLAYER	 	= Regex('videoPlayer\\\\" value=\\\\"(.*?)\\\\"')
+SBSMATCH 	= Regex('(.*?)sbs6(.*?)')
+NET5MATCH 	= Regex('(.*?)net5(.*?)')
+VEROMATCH 	= Regex('(.*?)veronicatv(.*?)')
+
+CHANNELS = {
+	'NET 5': {
+		'base': 'http://www.net5.nl'
+	},
+	'SBS 6': {
+		'base': 'http://www.sbs6.nl'
+	},
+	'Veronica': {
+		'base': 'http://www.veronicatv.nl'
+	}
+}
+
+####################################################################################################
+def NormalizeURL(url):
+	return url
+
+####################################################################################################
+def MetadataObjectForURL(url):
+
+	page = HTML.ElementFromURL(url)
+	
+	sbstest 	= SBSMATCH.match(url)
+	net5test	= NET5MATCH.match(url)
+	verotest	= VEROMATCH.match(url)
+	
+	if (sbstest):
+		base = (CHANNELS['SBS 6']['base'])
+	
+	if (verotest):
+		base = (CHANNELS['Veronica']['base'])
+	
+	if (net5test):
+		base = (CHANNELS['NET 5']['base'])
+	
+	
+	try:	
+		thumb = page.xpath('//section[@class="s ajax"]/div/div/div[@class="i iBorder"]/a/img')[0].get('src')
+		thumb = base + thumb
+	except:
+		try:
+			thumb = page.xpath('//div[@class="i iGuide iGuideSlider"]/a/img')[0].get('src')
+			thumb = base + thumb
+		except:
+			thumb = R('icon-default.png')
+	
+	try:
+		title = page.xpath('//meta[@property="og:title"]')[0].get('content')
+	except:
+		title = ""
+
+	try:
+		summary = page.xpath('//meta[@property="og:description"]')[0].get('content')
+	except:
+		summary = ""
+
+	return VideoClipObject(
+		title = title,
+		summary = summary,
+		thumb = thumb
+	)
+	
+####################################################################################################
+def MediaObjectsForURL(url):
+	return [
+		MediaObject(
+			audio_codec = AudioCodec.AAC,
+			video_codec = VideoCodec.H264,
+			container = 'mp4',
+			parts = [PartObject(key=Callback(PlayVideo, url = url))]
+		)
+	]
+
+####################################################################################################
+@indirect
+def PlayVideo(url):
+	amf_response = DoAmfRequest(url)
+	return IndirectResponse(VideoClipObject, key = amf_response)
+	
+####################################################################################################	
+def DoAmfRequest(url):
+	page_contents = HTTP.Request(url).content
+	
+	player_id = PLAYER_ID.search(page_contents).groups()[0]
+	player_key = PLAYER_KEY.search(page_contents).groups()[0]
+	video_id = PLAYER.search(page_contents).groups()[0]
+	
+	return AmfRequest(url = url, playerID = player_id, playerKey = player_key, videoPlayer = video_id)
+	
+####################################################################################################	
+def AmfRequest(url=None, playerID=None, playerKey=None, videoPlayer=None):
+
+	endpoint = AMF_URL
+	if playerKey:
+		endpoint += '?playerKey=%s' % playerKey
+
+	client = AMF.RemotingService(url=endpoint, user_agent='', amf_version=3)
+	service = client.getService('com.brightcove.experience.ExperienceRuntimeFacade')
+
+	AMF.RegisterClass(ContentOverride, 'com.brightcove.experience.ContentOverride')
+	AMF.RegisterClass(ViewerExperienceRequest, 'com.brightcove.experience.ViewerExperienceRequest')
+
+	video_obj = ContentOverride(videoPlayer)
+	experience = ViewerExperienceRequest(url, playerID, playerKey, video_obj)
+	result = service.getDataForExperience('', experience)
+	
+	clip = (result['programmedContent']['videoPlayer']['mediaDTO']['FLVFullLengthURL'])
+	domain, file  = clip.split('/&')
+	play				= []
+	play_content_type   =   'video/x-flv'
+	play_rtmpurl        =   file
+	play_rtmpdomain     =   domain
+	crap, play_rtmpurl	= play_rtmpurl.split('mp4:')
+	video_url = play_rtmpdomain + "/" + play_rtmpurl
+	
+	return video_url
+	
+####################################################################################################		
+class ContentOverride(object):
+  def __init__ (self, videoPlayer=None):
+    self.contentType = int(0)
+    self.contentIds = None
+    self.target = 'videoPlayer'
+    self.contentId = int(videoPlayer)
+    self.featuredRefId = None
+    self.contentRefIds = None
+    self.featuredId = float('nan')
+    self.contentRefId = None
+
+####################################################################################################	
+class ViewerExperienceRequest(object):
+  def __init__ (self, url=None, playerID=None, playerKey=None, video_obj=None):
+    self.experienceId = int(playerID)
+    self.playerKey = playerKey
+    self.contentOverrides = []
+    self.contentOverrides.append(video_obj)
+    self.TTLToken = ''
+    self.URL = url
+    self.deliveryType = float('nan')	
