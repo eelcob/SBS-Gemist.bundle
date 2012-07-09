@@ -86,16 +86,15 @@ def Episode(title, kanaal):
 	for div in div_main:
 		stream_name = div.xpath('./div/h2/a')[0].text
 		stream_id   = CHANNELS[kanaal]['base'] + div.xpath('./div/h2/a')[0].get('href')
-		url = stream_id + '/videos'
+		url = stream_id + '/videos'	
 		
-		#test if the page is actually there
+		#test if the page is actually there 
 		try:
 			data = HTTP.Request(url, cacheTime=0).headers
 		except:
 			continue
-		
-		stream_title = stream_name
-		oc.add(DirectoryObject(key = Callback(GetShows, kanaal=kanaal, url=url), title=stream_title, art=R(CHANNELS[kanaal]['art'])))
+			
+		oc.add(DirectoryObject(key = Callback(GetShows, kanaal=kanaal, url=url), title=stream_name, art=R(CHANNELS[kanaal]['art'])))
 		
 	if len(oc) == 0:
 		oc = ObjectContainer(header = L('NoVideo'), message = L('NoClips'))

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 AMF_URL = 'http://c.brightcove.com/services/messagebroker/amf'
 
-PLAYER_KEY 	= Regex('\\\\"playerKey\\\\" value=\\\\"([^"]+)\\\\"', Regex.DOTALL)
-PLAYER_ID	= Regex('\\\\"playerID\\\\" value=\\\\"([^"]+)\\\\"', Regex.DOTALL)
+PLAYER_KEY 	= Regex('\\\\"playerKey\\\\" value=\\\\"([^"]+)\\\\"')
+PLAYER_ID	= Regex('\\\\"playerID\\\\" value=\\\\"([^"]+)\\\\"')
 PLAYER	 	= Regex('videoPlayer\\\\" value=\\\\"(.*?)\\\\"')
-SBSMATCH 	= Regex('(.*?)sbs6(.*?)')
-NET5MATCH 	= Regex('(.*?)net5(.*?)')
-VEROMATCH 	= Regex('(.*?)veronicatv(.*?)')
+SBSMATCH 	= Regex("(.*?)sbs6(.*?)")
+NET5MATCH 	= Regex("(.*?)net5(.*?)")
+VEROMATCH 	= Regex("(.*?)veronicatv(.*?)")
 
 CHANNELS = {
 	'NET 5': {
