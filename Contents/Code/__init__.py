@@ -140,7 +140,8 @@ def GetShows(kanaal, url):
 		oc.add(VideoClipObject(
 			url = episode_id,
 			title = episode_name,
-			thumb=Resource.ContentsOfURLWithFallback(url=episode_thumb, fallback=R(CHANNELS[kanaal]['icon']))	
+			thumb=Resource.ContentsOfURLWithFallback(url=episode_thumb, fallback=CHANNELS[kanaal]['icon'])
+			#thumb=Resource.ContentsOfURLWithFallback(url=episode_thumb, fallback=R(CHANNELS[kanaal]['icon']))	
 		))
 	
 	if len(page.xpath('//div[@class="pager"]')) > 0:
