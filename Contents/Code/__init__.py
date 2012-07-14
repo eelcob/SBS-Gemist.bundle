@@ -189,6 +189,7 @@ def GetShows(kanaal, url, style):
 		div_main 	= page.xpath('//div[@class="i iGuide iGuideSlider"]') 		
 	elif style == 'Afleveringen':
 		seasons  	= page.xpath('//div[@class="subMenu"]/ul/li') 
+		div_main 	= page.xpath('//div[@class="i iGuide iGuideSlider"]') 		
 	else:
 		oc = ObjectContainer(header = L('NoVideo'), message = L('NoClips'))
 		return oc
@@ -200,12 +201,9 @@ def GetShows(kanaal, url, style):
 				slink = season.xpath('./a')[0].get('href')
 				stext = season.xpath('./a')[0].text
 				oc.add(DirectoryObject(key = Callback(GetShows, kanaal=kanaal, url=str(CHANNELS[kanaal]['base'] + slink), style='Parsed'), title=stext, art=R(CHANNELS[kanaal]['art'])))
+			return oc
 		except:
-			oc = ObjectContainer(header = L('NoVideo'), message = L('NoClips'))
-	
-		return oc
-
-	#### Get the clips content and display it via URLService	
+			pass
 	else:	
 		for episodes in div_main:
 			if style == 'Clips':
@@ -213,6 +211,10 @@ def GetShows(kanaal, url, style):
 				episode_id =  str(CHANNELS[kanaal]['base'] + episodes.xpath('./a')[0].get('href'))
 				episode_thumb = str(CHANNELS[kanaal]['base'] + episodes.xpath('./a/img')[0].get('src'))
 			elif style == 'Parsed':
+				episode_name = str(episodes.xpath('./div/h2')[0].text)
+				episode_id =  str(CHANNELS[kanaal]['base'] + episodes.xpath('./a')[0].get('href'))
+				episode_thumb = str(CHANNELS[kanaal]['base'] + episodes.xpath('./a/img')[0].get('src'))
+			elif style == 'Afleveringen':
 				episode_name = str(episodes.xpath('./div/h2')[0].text)
 				episode_id =  str(CHANNELS[kanaal]['base'] + episodes.xpath('./a')[0].get('href'))
 				episode_thumb = str(CHANNELS[kanaal]['base'] + episodes.xpath('./a/img')[0].get('src'))
@@ -237,10 +239,10 @@ def GetShows(kanaal, url, style):
 				currentpage = page.xpath('//div[@class="pager"]/ul/li[@class="active"]/a')[0].get('href')
 				link, pagenr = currentpage.split('page/')
 				pagenr = int(pagenr)
-			if not pagenr == count:
-				pagenr = pagenr + 1
-				pagenr = str(pagenr)
-				url = 	CHANNELS[kanaal]['base'] + 	link + "page/" + pagenr
-				oc.add(DirectoryObject(key=Callback(GetShows, kanaal=kanaal, url=url, style='Clips'), title=L('More'), thumb=R(ICON_MORE), art=R(CHANNELS[kanaal]['art'])))
+				if not pagenr == count:
+					pagenr = pagenr + 1
+					pagenr = str(pagenr)
+					url = 	CHANNELS[kanaal]['base'] + 	link + "page/" + pagenr
+					oc.add(DirectoryObject(key=Callback(GetShows, kanaal=kanaal, url=url, style='Clips'), title=L('More'), thumb=R(ICON_MORE), art=R(CHANNELS[kanaal]['art'])))
 	
 	return oc
