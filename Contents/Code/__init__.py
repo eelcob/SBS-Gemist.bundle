@@ -31,6 +31,8 @@ CHANNELS = {
 	}
 }
 
+## TODO fix thumb at direct play per day
+
 ###################################################################################################
 def Start():
 	Plugin.AddPrefixHandler('/video/sbsgemist', MainMenu, PLUGIN_TITLE, ICON, ART)
@@ -148,13 +150,33 @@ def Episode(title, kanaal, function):
 		else:
 			url = stream_id
 		
-		#test if the page is actually there perhaps also check for series here met afleveringen
+		#test if the page is actually there a couple of pages have no video link
 		try:
 			data = HTTP.Request(url, cacheTime=0).headers
 		except:
 			continue
 			
-		oc.add(DirectoryObject(key = Callback(GetCatagory, kanaal=kanaal, url=url), title=stream_name, art=R(CHANNELS[kanaal]['art'])))
+		if function == 'day':
+			
+			page = HTML.ElementFromURL(url)	
+			episode_id 		= str(CHANNELS[kanaal]['base'] + page.xpath('//div[@class="tabs "]/div/a[@class="active"]')[0].get('href'))
+			episode_name 	= str(page.xpath('//header[@class="sHead"]/h1')[0].text)
+			#THUMB TO FIX
+			#episode_thumb 	= str(CHANNELS[kanaal]['base'] + div_main.xpath('./a/img')[0].get('src'))
+			episode_thumb	= ""
+			video = VIDEOMATCH.match(episode_id)
+			
+			if not video:
+				continue
+		
+			oc.add(VideoClipObject(
+				url = episode_id,
+				title = episode_name,
+				thumb=Resource.ContentsOfURLWithFallback(url=episode_thumb, fallback=CHANNELS[kanaal]['icon'])
+			))
+			
+		else:	
+			oc.add(DirectoryObject(key = Callback(GetCatagory, kanaal=kanaal, url=url), title=stream_name, art=R(CHANNELS[kanaal]['art'])))
 		
 	if len(oc) == 0:
 		oc = ObjectContainer(header = L('NoVideo'), message = L('NoClips'))
