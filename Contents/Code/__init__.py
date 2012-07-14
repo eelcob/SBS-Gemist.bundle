@@ -60,9 +60,9 @@ def MainMenu():
 def OptionPicker(kanaal):	
 	oc = ObjectContainer(title2=kanaal)	
 	
-	oc.add(DirectoryObject(key = Callback(NameList, kanaal=kanaal), title='Programs via name', thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(DayList, kanaal=kanaal), title='Programs via date', thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(GenreList, kanaal=kanaal), title='Programs via genre', thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(NameList, kanaal=kanaal), title=L('Programs via name'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(DayList, kanaal=kanaal), title=L('Programs via date'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(GenreList, kanaal=kanaal), title=L('Programs via genre'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
 	
 	return oc
 	

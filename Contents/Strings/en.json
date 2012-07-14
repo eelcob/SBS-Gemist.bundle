@@ -42,5 +42,8 @@
 	"Religion": "Religion",
 	"Shows": "Shows",
 	"Sport": "Sport",
+	"Programs via name": "Programs on Name",
+	"Programs via date": "Programs on Date",
+	"Programs via genre": "Programs on Category",
 	"ImageError": "No image found"
 }
