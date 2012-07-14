@@ -7,6 +7,9 @@ ICON_SEARCH		= 'icon-search.png'
 ICON_MORE		= 'icon-more.png'
 
 PROGRAMLINK		= '/ajax/programFilter/day/0/genre/all/block/programs/range/'
+GENRELINK		= '/ajax/programFilter/range/popular/day/0/block/gemist/genre/'
+DAYLINK			= '/ajax/programFilter/range/popular/genre/all/block/gemist/day/'
+
 VIDEOMATCH		= Regex("(.*?)videos(.*?)")
 
 CHANNEL_ORDER      = ('NET 5', 'SBS 6', 'Veronica')
@@ -49,32 +52,85 @@ def MainMenu():
 	oc = ObjectContainer()
 
 	for kanaal in CHANNEL_ORDER:
-		oc.add(DirectoryObject(key = Callback(CatagoryListing, kanaal=kanaal), title=kanaal, thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
-
+		oc.add(DirectoryObject(key = Callback(OptionPicker, kanaal=kanaal), title=kanaal, thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
+	
 	return oc
 
 ####################################################################################################
-def CatagoryListing(kanaal):
-	oc = ObjectContainer(title2=kanaal)
+def OptionPicker(kanaal):	
+	oc = ObjectContainer(title2=kanaal)	
 	
-	oc.add(DirectoryObject(key = Callback(Episode, title='popular', kanaal=kanaal), title=L('Popular'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='0-9', kanaal=kanaal), title=L('StartingWith') + " " + L('09'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='ABC', kanaal=kanaal), title=L('StartingWith') + " " + L('ABC'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='DEF', kanaal=kanaal), title=L('StartingWith') + " " + L('DEF'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='GHI', kanaal=kanaal), title=L('StartingWith') + " " + L('GHI'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='JKL', kanaal=kanaal), title=L('StartingWith') + " " + L('JKL'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='MNO', kanaal=kanaal), title=L('StartingWith') + " " + L('MNO'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='PQR', kanaal=kanaal), title=L('StartingWith') + " " + L('PQR'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='STUV', kanaal=kanaal), title=L('StartingWith') + " " + L('STUV'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='WXYZ', kanaal=kanaal), title=L('StartingWith') + " " + L('WXYZ'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(NameList, kanaal=kanaal), title='Programs via name', thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(DayList, kanaal=kanaal), title='Programs via date', thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(GenreList, kanaal=kanaal), title='Programs via genre', thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
 	
 	return oc
 	
-###################################################################################################
-def Episode(title, kanaal):
-	oc = ObjectContainer()
+####################################################################################################
+def NameList(kanaal):
+	oc = ObjectContainer(title2=kanaal)
+	
+	oc.add(DirectoryObject(key = Callback(Episode, title='popular', kanaal=kanaal, function='name'), title=L('Popular'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='0-9', kanaal=kanaal, function='name'), title=L('StartingWith') + " " + L('09'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='ABC', kanaal=kanaal, function='name'), title=L('StartingWith') + " " + L('ABC'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='DEF', kanaal=kanaal, function='name'), title=L('StartingWith') + " " + L('DEF'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='GHI', kanaal=kanaal, function='name'), title=L('StartingWith') + " " + L('GHI'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='JKL', kanaal=kanaal, function='name'), title=L('StartingWith') + " " + L('JKL'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='MNO', kanaal=kanaal, function='name'), title=L('StartingWith') + " " + L('MNO'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='PQR', kanaal=kanaal, function='name'), title=L('StartingWith') + " " + L('PQR'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='STUV', kanaal=kanaal, function='name'), title=L('StartingWith') + " " + L('STUV'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='WXYZ', kanaal=kanaal, function='name'), title=L('StartingWith') + " " + L('WXYZ'), art=R(CHANNELS[kanaal]['art'])))
+	
+	return oc
 
-	url  = CHANNELS[kanaal]['base'] + PROGRAMLINK + title
+####################################################################################################
+def DayList(kanaal):
+	oc = ObjectContainer(title2=kanaal)
+
+	oc.add(DirectoryObject(key = Callback(Episode, title='1', kanaal=kanaal, function='day'), title=L('Monday'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='2', kanaal=kanaal, function='day'), title=L('Tuesday'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='3', kanaal=kanaal, function='day'), title=L('Wednesday'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='4', kanaal=kanaal, function='day'), title=L('Thursday'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='5', kanaal=kanaal, function='day'), title=L('Friday'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='6', kanaal=kanaal, function='day'), title=L('Saturday'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='7', kanaal=kanaal, function='day'), title=L('Sunday'), art=R(CHANNELS[kanaal]['art'])))
+
+	return oc
+	
+####################################################################################################
+def GenreList(kanaal):
+	oc = ObjectContainer(title2=kanaal)	
+
+	oc.add(DirectoryObject(key = Callback(Episode, title='13', kanaal=kanaal, function='genre'), title=L('Amusement'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='12', kanaal=kanaal, function='genre'), title=L('Animation'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='4', kanaal=kanaal, function='genre'), title=L('Comedy'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='8', kanaal=kanaal, function='genre'), title=L('Consumer'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='10', kanaal=kanaal, function='genre'), title=L('Documentairy'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='17', kanaal=kanaal, function='genre'), title=L('Docusoap'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='5', kanaal=kanaal, function='genre'), title=L('Movie'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='1', kanaal=kanaal, function='genre'), title=L('Informative'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='11', kanaal=kanaal, function='genre'), title=L('Crime'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='9', kanaal=kanaal, function='genre'), title=L('Music'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='2', kanaal=kanaal, function='genre'), title=L('News'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='7', kanaal=kanaal, function='genre'), title=L('Other'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='16', kanaal=kanaal, function='genre'), title=L('Reality'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='3', kanaal=kanaal, function='genre'), title=L('Religion'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='14', kanaal=kanaal, function='genre'), title=L('Shows'), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Episode, title='15', kanaal=kanaal, function='genre'), title=L('Sport'), art=R(CHANNELS[kanaal]['art'])))
+
+	return oc
+
+###################################################################################################
+def Episode(title, kanaal, function):
+	oc = ObjectContainer()
+	
+	if function == 'name':
+		url = CHANNELS[kanaal]['base'] + PROGRAMLINK + title
+	elif function == 'day':
+		url = CHANNELS[kanaal]['base'] + DAYLINK + title
+	else:
+		url = CHANNELS[kanaal]['base'] + GENRELINK + title
+		
 	try:
 		page = HTML.ElementFromURL(url)
 	except:
@@ -86,76 +142,105 @@ def Episode(title, kanaal):
 	for div in div_main:
 		stream_name = div.xpath('./div/h2/a')[0].text
 		stream_id   = CHANNELS[kanaal]['base'] + div.xpath('./div/h2/a')[0].get('href')
-		url = stream_id + '/videos'	
 		
-		#test if the page is actually there 
+		if stream_id.find('/videos') == -1:
+			url = stream_id + '/videos'	
+		else:
+			url = stream_id
+		
+		#test if the page is actually there perhaps also check for series here met afleveringen
 		try:
 			data = HTTP.Request(url, cacheTime=0).headers
 		except:
 			continue
 			
-		oc.add(DirectoryObject(key = Callback(GetShows, kanaal=kanaal, url=url), title=stream_name, art=R(CHANNELS[kanaal]['art'])))
+		oc.add(DirectoryObject(key = Callback(GetCatagory, kanaal=kanaal, url=url), title=stream_name, art=R(CHANNELS[kanaal]['art'])))
 		
 	if len(oc) == 0:
 		oc = ObjectContainer(header = L('NoVideo'), message = L('NoClips'))
 		
 	return oc	
-	
+
 ###################################################################################################
-def GetShows(kanaal, url):
+def GetCatagory(kanaal, url):
 	oc = ObjectContainer()
 
 	page = HTML.ElementFromURL(url)
 	try:
-		style = page.xpath('//section[@class="s ajax"]/header/h1')[0].text
+		style = page.xpath('//section[@class="s ajax"]/header/h1')
+		for num in range(len(style)):
+			oc.add(DirectoryObject(key = Callback(GetShows, kanaal=kanaal, url=url, style=style[num].text), title=style[num].text, art=R(CHANNELS[kanaal]['art'])))
 	except:
-		oc = ObjectContainer(header = "Clip Error", message = "No clips found")
-		style = ""
-		div_main = []
+		oc = ObjectContainer(header = L('NoVideo'), message = L('NoClips'))
 		
-	if style == 'Clips':
-		div_main = page.xpath('//section[@class="s ajax"]/div/div/div[@class="i iBorder"]')
-	elif style == 'Afleveringen':
-		div_main = page.xpath('//div[@class="i iGuide iGuideSlider"]') 
-
-	for episodes in div_main:
-		if style == 'Clips':
-			episode_name = str(episodes.xpath('./div/h2/a')[0].text)
-			episode_id =  str(CHANNELS[kanaal]['base'] + episodes.xpath('./a')[0].get('href'))
-			episode_thumb = str(CHANNELS[kanaal]['base'] + episodes.xpath('./a/img')[0].get('src'))
-		elif style == 'Afleveringen':
-			episode_name = str(episodes.xpath('./div/h2')[0].text)
-			episode_id =  str(CHANNELS[kanaal]['base'] + episodes.xpath('./a')[0].get('href'))
-			episode_thumb = str(CHANNELS[kanaal]['base'] + episodes.xpath('./a/img')[0].get('src'))
-		else:
-			continue
-
-		video = VIDEOMATCH.match(episode_id)
-		
-		if video:
-			Log('video found')
-		else:
-			continue
-		
-		oc.add(VideoClipObject(
-			url = episode_id,
-			title = episode_name,
-			thumb=Resource.ContentsOfURLWithFallback(url=episode_thumb, fallback=CHANNELS[kanaal]['icon'])
-			#thumb=Resource.ContentsOfURLWithFallback(url=episode_thumb, fallback=R(CHANNELS[kanaal]['icon']))	
-		))
+	return oc	
 	
-	if len(page.xpath('//div[@class="pager"]')) > 0:
-		count = len(page.xpath('//div[@class="pager"]/ul/li[@class]'))
-		currentpage = page.xpath('//div[@class="pager"]/ul/li[@class="active"]/a')[0].get('href')
-		link, pagenr = currentpage.split('page/')
-		pagenr = int(pagenr)
+###################################################################################################
+def GetShows(kanaal, url, style):
+	oc = ObjectContainer()
 
-		if pagenr == count:
-			Log('end of pages reached')
-		else:	
-			pagenr = pagenr + 1
-			pagenr = str(pagenr)
-			url = 	CHANNELS[kanaal]['base'] + 	link + "page/" + pagenr
-			oc.add(DirectoryObject(key=Callback(GetShows, kanaal=kanaal, url=url), title=L('More'), thumb=R(ICON_MORE), art=R(CHANNELS[kanaal]['art'])))
+	page = HTML.ElementFromURL(url)	
+	seasons	 	= ""
+	
+	### Set the xpath per call, clips and parsed return videos, afleveringen hits the season list
+	if style == 'Clips':
+		div_main 	= page.xpath('//section[@class="s ajax"]/div/div/div[@class="i iBorder"]')	
+	elif style == 'Parsed':
+		div_main 	= page.xpath('//div[@class="i iGuide iGuideSlider"]') 		
+	elif style == 'Afleveringen':
+		seasons  	= page.xpath('//div[@class="subMenu"]/ul/li') 
+	else:
+		oc = ObjectContainer(header = L('NoVideo'), message = L('NoClips'))
+		return oc
+		
+	### Test for full season links and display a container per season	
+	if seasons:
+		try:
+			for season in seasons:
+				slink = season.xpath('./a')[0].get('href')
+				stext = season.xpath('./a')[0].text
+				oc.add(DirectoryObject(key = Callback(GetShows, kanaal=kanaal, url=str(CHANNELS[kanaal]['base'] + slink), style='Parsed'), title=stext, art=R(CHANNELS[kanaal]['art'])))
+		except:
+			oc = ObjectContainer(header = L('NoVideo'), message = L('NoClips'))
+	
+		return oc
+
+	#### Get the clips content and display it via URLService	
+	else:	
+		for episodes in div_main:
+			if style == 'Clips':
+				episode_name = str(episodes.xpath('./div/h2/a')[0].text)
+				episode_id =  str(CHANNELS[kanaal]['base'] + episodes.xpath('./a')[0].get('href'))
+				episode_thumb = str(CHANNELS[kanaal]['base'] + episodes.xpath('./a/img')[0].get('src'))
+			elif style == 'Parsed':
+				episode_name = str(episodes.xpath('./div/h2')[0].text)
+				episode_id =  str(CHANNELS[kanaal]['base'] + episodes.xpath('./a')[0].get('href'))
+				episode_thumb = str(CHANNELS[kanaal]['base'] + episodes.xpath('./a/img')[0].get('src'))
+			else:
+				continue
+
+			video = VIDEOMATCH.match(episode_id)
+		
+			if not video:
+				continue
+		
+			oc.add(VideoClipObject(
+				url = episode_id,
+				title = episode_name,
+				thumb=Resource.ContentsOfURLWithFallback(url=episode_thumb, fallback=CHANNELS[kanaal]['icon'])
+			))
+	
+		### Test for multiple pages on the clips screen and display a more button if there a more clips
+		if style == 'Clips':
+			if len(page.xpath('//div[@class="pager"]')) > 0:
+				count = len(page.xpath('//div[@class="pager"]/ul/li[@class]'))
+				currentpage = page.xpath('//div[@class="pager"]/ul/li[@class="active"]/a')[0].get('href')
+				link, pagenr = currentpage.split('page/')
+				pagenr = int(pagenr)
+			if not pagenr == count:
+				pagenr = pagenr + 1
+				pagenr = str(pagenr)
+				url = 	CHANNELS[kanaal]['base'] + 	link + "page/" + pagenr
+				oc.add(DirectoryObject(key=Callback(GetShows, kanaal=kanaal, url=url, style='Clips'), title=L('More'), thumb=R(ICON_MORE), art=R(CHANNELS[kanaal]['art'])))
 	
 	return oc
