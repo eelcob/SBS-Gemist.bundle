@@ -9,6 +9,8 @@ ICON_MORE		= 'icon-more.png'
 PROGRAMLINK		= '/ajax/programFilter/day/0/genre/all/block/programs/range/'
 GENRELINK		= '/ajax/programFilter/range/popular/day/0/block/gemist/genre/'
 DAYLINK			= '/ajax/programFilter/range/popular/genre/all/block/gemist/day/'
+#RECENTURL		= '/gemist'
+RECENTURL		= '/ajax/VideoNewPopular/nameprogram//page/'
 
 VIDEOMATCH		= Regex("(.*?)videos(.*?)")
 
@@ -63,8 +65,9 @@ def OptionPicker(kanaal):
 	oc = ObjectContainer(title2=kanaal)	
 	
 	oc.add(DirectoryObject(key = Callback(NameList, kanaal=kanaal), title=L('Programs via name'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(DayList, kanaal=kanaal), title=L('Programs via date'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
+#	oc.add(DirectoryObject(key = Callback(DayList, kanaal=kanaal), title=L('Programs via date'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
 	oc.add(DirectoryObject(key = Callback(GenreList, kanaal=kanaal), title=L('Programs via genre'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
+	oc.add(DirectoryObject(key = Callback(Recent, kanaal=kanaal, url=CHANNELS[kanaal]['base'] + RECENTURL, pagenr=1), title=L('Recent'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
 	
 	return oc
 	
@@ -86,19 +89,19 @@ def NameList(kanaal):
 	return oc
 
 ####################################################################################################
-def DayList(kanaal):
-	oc = ObjectContainer(title2=kanaal)
-
-	oc.add(DirectoryObject(key = Callback(Episode, title='1', kanaal=kanaal, function='day'), title=L('Monday'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='2', kanaal=kanaal, function='day'), title=L('Tuesday'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='3', kanaal=kanaal, function='day'), title=L('Wednesday'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='4', kanaal=kanaal, function='day'), title=L('Thursday'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='5', kanaal=kanaal, function='day'), title=L('Friday'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='6', kanaal=kanaal, function='day'), title=L('Saturday'), art=R(CHANNELS[kanaal]['art'])))
-	oc.add(DirectoryObject(key = Callback(Episode, title='7', kanaal=kanaal, function='day'), title=L('Sunday'), art=R(CHANNELS[kanaal]['art'])))
-
-	return oc
-	
+#def DayList(kanaal):
+#	oc = ObjectContainer(title2=kanaal)
+#
+#	oc.add(DirectoryObject(key = Callback(Episode, title='1', kanaal=kanaal, function='day'), title=L('Monday'), art=R(CHANNELS[kanaal]['art'])))
+#	oc.add(DirectoryObject(key = Callback(Episode, title='2', kanaal=kanaal, function='day'), title=L('Tuesday'), art=R(CHANNELS[kanaal]['art'])))
+#	oc.add(DirectoryObject(key = Callback(Episode, title='3', kanaal=kanaal, function='day'), title=L('Wednesday'), art=R(CHANNELS[kanaal]['art'])))
+#	oc.add(DirectoryObject(key = Callback(Episode, title='4', kanaal=kanaal, function='day'), title=L('Thursday'), art=R(CHANNELS[kanaal]['art'])))
+#	oc.add(DirectoryObject(key = Callback(Episode, title='5', kanaal=kanaal, function='day'), title=L('Friday'), art=R(CHANNELS[kanaal]['art'])))
+#	oc.add(DirectoryObject(key = Callback(Episode, title='6', kanaal=kanaal, function='day'), title=L('Saturday'), art=R(CHANNELS[kanaal]['art'])))
+#	oc.add(DirectoryObject(key = Callback(Episode, title='7', kanaal=kanaal, function='day'), title=L('Sunday'), art=R(CHANNELS[kanaal]['art'])))
+#
+#	return oc
+#	
 ####################################################################################################
 def GenreList(kanaal):
 	oc = ObjectContainer(title2=kanaal)	
@@ -123,13 +126,39 @@ def GenreList(kanaal):
 	return oc
 
 ###################################################################################################
+def Recent(kanaal, url, pagenr):
+	oc = ObjectContainer()
+
+	urlpage = url + str(pagenr)
+	
+	page = HTML.ElementFromURL(urlpage)
+	recentclips = page.xpath('//div[@class="sBody"]/div[@class="i iBorder"]')
+	
+	for clips in recentclips:
+		clip_title 	= clips.xpath('./div/h2/a')[0].text
+		clip_link 	= str(CHANNELS[kanaal]['base'] + clips.xpath('./div/h2/a')[0].get('href'))
+		clip_thumb 	= str(CHANNELS[kanaal]['base'] + clips.xpath('./a/img')[0].get('src'))	
+		
+		oc.add(VideoClipObject(
+			url = clip_link,
+			title = clip_title,
+			thumb=Resource.ContentsOfURLWithFallback(url=clip_thumb, fallback=CHANNELS[kanaal]['icon'])
+		))
+		
+	pagenr = int(pagenr)
+	pagenr = pagenr + 1
+	oc.add(DirectoryObject(key=Callback(Recent, kanaal=kanaal, url=url, pagenr=pagenr), title=L('More'), thumb=R(ICON_MORE), art=R(CHANNELS[kanaal]['art'])))
+		
+	return oc	
+		
+###################################################################################################
 def Episode(title, kanaal, function):
 	oc = ObjectContainer()
 	
 	if function == 'name':
 		url = CHANNELS[kanaal]['base'] + PROGRAMLINK + title
-	elif function == 'day':
-		url = CHANNELS[kanaal]['base'] + DAYLINK + title
+#	elif function == 'day':
+#		url = CHANNELS[kanaal]['base'] + DAYLINK + title
 	else:
 		url = CHANNELS[kanaal]['base'] + GENRELINK + title
 		
@@ -156,27 +185,29 @@ def Episode(title, kanaal, function):
 		except:
 			continue
 			
-		if function == 'day':
-			
-			page = HTML.ElementFromURL(url)	
-			episode_id 		= str(CHANNELS[kanaal]['base'] + page.xpath('//div[@class="tabs "]/div/a[@class="active"]')[0].get('href'))
-			episode_name 	= str(page.xpath('//header[@class="sHead"]/h1')[0].text)
-			#THUMB TO FIX
-			#episode_thumb 	= str(CHANNELS[kanaal]['base'] + div_main.xpath('./a/img')[0].get('src'))
-			episode_thumb	= ""
-			video = VIDEOMATCH.match(episode_id)
-			
-			if not video:
-				continue
-		
-			oc.add(VideoClipObject(
-				url = episode_id,
-				title = episode_name,
-				thumb=Resource.ContentsOfURLWithFallback(url=episode_thumb, fallback=CHANNELS[kanaal]['icon'])
-			))
-			
-		else:	
-			oc.add(DirectoryObject(key = Callback(GetCatagory, kanaal=kanaal, url=url), title=stream_name, art=R(CHANNELS[kanaal]['art'])))
+#		if function == 'day':
+#			
+#			page = HTML.ElementFromURL(url)	
+#			episode_id 		= str(CHANNELS[kanaal]['base'] + page.xpath('//div[@class="tabs "]/div/a[@class="active"]')[0].get('href'))
+#			episode_name 	= str(page.xpath('//header[@class="sHead"]/h1')[0].text)
+#			Log.Debug(url)
+#			
+#			#THUMB TO FIX
+#			#episode_thumb 	= str(CHANNELS[kanaal]['base'] + div_main.xpath('./a/img')[0].get('src'))
+#			episode_thumb	= ""
+#			video = VIDEOMATCH.match(episode_id)
+#			
+#			if not video:
+#				continue
+#		
+#			oc.add(VideoClipObject(
+#				url = episode_id,
+#				title = episode_name,
+#				thumb=Resource.ContentsOfURLWithFallback(url=episode_thumb, fallback=CHANNELS[kanaal]['icon'])
+#			))
+#			
+#		else:	
+		oc.add(DirectoryObject(key = Callback(GetCatagory, kanaal=kanaal, url=url), title=stream_name, art=R(CHANNELS[kanaal]['art'])))
 		
 	if len(oc) == 0:
 		oc = ObjectContainer(header = L('NoVideo'), message = L('NoClips'))
