@@ -33,8 +33,6 @@ CHANNELS = {
 	}
 }
 
-## TODO fix thumb at direct play per day
-
 ###################################################################################################
 def Start():
 	Plugin.AddPrefixHandler('/video/sbsgemist', MainMenu, PLUGIN_TITLE, ICON, ART)
@@ -65,7 +63,6 @@ def OptionPicker(kanaal):
 	oc = ObjectContainer(title2=kanaal)	
 	
 	oc.add(DirectoryObject(key = Callback(NameList, kanaal=kanaal), title=L('Programs via name'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
-#	oc.add(DirectoryObject(key = Callback(DayList, kanaal=kanaal), title=L('Programs via date'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
 	oc.add(DirectoryObject(key = Callback(GenreList, kanaal=kanaal), title=L('Programs via genre'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
 	oc.add(DirectoryObject(key = Callback(Recent, kanaal=kanaal, url=CHANNELS[kanaal]['base'] + RECENTURL, pagenr=1), title=L('Recent'), thumb=R(CHANNELS[kanaal]['icon']), art=R(CHANNELS[kanaal]['art'])))
 	
@@ -88,20 +85,6 @@ def NameList(kanaal):
 	
 	return oc
 
-####################################################################################################
-#def DayList(kanaal):
-#	oc = ObjectContainer(title2=kanaal)
-#
-#	oc.add(DirectoryObject(key = Callback(Episode, title='1', kanaal=kanaal, function='day'), title=L('Monday'), art=R(CHANNELS[kanaal]['art'])))
-#	oc.add(DirectoryObject(key = Callback(Episode, title='2', kanaal=kanaal, function='day'), title=L('Tuesday'), art=R(CHANNELS[kanaal]['art'])))
-#	oc.add(DirectoryObject(key = Callback(Episode, title='3', kanaal=kanaal, function='day'), title=L('Wednesday'), art=R(CHANNELS[kanaal]['art'])))
-#	oc.add(DirectoryObject(key = Callback(Episode, title='4', kanaal=kanaal, function='day'), title=L('Thursday'), art=R(CHANNELS[kanaal]['art'])))
-#	oc.add(DirectoryObject(key = Callback(Episode, title='5', kanaal=kanaal, function='day'), title=L('Friday'), art=R(CHANNELS[kanaal]['art'])))
-#	oc.add(DirectoryObject(key = Callback(Episode, title='6', kanaal=kanaal, function='day'), title=L('Saturday'), art=R(CHANNELS[kanaal]['art'])))
-#	oc.add(DirectoryObject(key = Callback(Episode, title='7', kanaal=kanaal, function='day'), title=L('Sunday'), art=R(CHANNELS[kanaal]['art'])))
-#
-#	return oc
-#	
 ####################################################################################################
 def GenreList(kanaal):
 	oc = ObjectContainer(title2=kanaal)	
@@ -138,10 +121,19 @@ def Recent(kanaal, url, pagenr):
 		clip_title 	= clips.xpath('./div/h2/a')[0].text
 		clip_link 	= str(CHANNELS[kanaal]['base'] + clips.xpath('./div/h2/a')[0].get('href'))
 		clip_thumb 	= str(CHANNELS[kanaal]['base'] + clips.xpath('./a/img')[0].get('src'))	
+		try:
+			clip_date	= clips.xpath('./div/p/a')[1].text
+		except:
+			clip_date 	= "00 / 00"
+		
+		clip_date, clip_length = clip_date.split('/')
+		clip_length = clip_length.replace('min', '')
+		clip_length = TimeToMilliseconds(time=clip_length)
 		
 		oc.add(VideoClipObject(
 			url = clip_link,
 			title = clip_title,
+			duration = clip_length,
 			thumb=Resource.ContentsOfURLWithFallback(url=clip_thumb, fallback=CHANNELS[kanaal]['icon'])
 		))
 		
@@ -157,8 +149,6 @@ def Episode(title, kanaal, function):
 	
 	if function == 'name':
 		url = CHANNELS[kanaal]['base'] + PROGRAMLINK + title
-#	elif function == 'day':
-#		url = CHANNELS[kanaal]['base'] + DAYLINK + title
 	else:
 		url = CHANNELS[kanaal]['base'] + GENRELINK + title
 		
@@ -184,29 +174,7 @@ def Episode(title, kanaal, function):
 			data = HTTP.Request(url, cacheTime=0).headers
 		except:
 			continue
-			
-#		if function == 'day':
-#			
-#			page = HTML.ElementFromURL(url)	
-#			episode_id 		= str(CHANNELS[kanaal]['base'] + page.xpath('//div[@class="tabs "]/div/a[@class="active"]')[0].get('href'))
-#			episode_name 	= str(page.xpath('//header[@class="sHead"]/h1')[0].text)
-#			Log.Debug(url)
-#			
-#			#THUMB TO FIX
-#			#episode_thumb 	= str(CHANNELS[kanaal]['base'] + div_main.xpath('./a/img')[0].get('src'))
-#			episode_thumb	= ""
-#			video = VIDEOMATCH.match(episode_id)
-#			
-#			if not video:
-#				continue
-#		
-#			oc.add(VideoClipObject(
-#				url = episode_id,
-#				title = episode_name,
-#				thumb=Resource.ContentsOfURLWithFallback(url=episode_thumb, fallback=CHANNELS[kanaal]['icon'])
-#			))
-#			
-#		else:	
+
 		oc.add(DirectoryObject(key = Callback(GetCatagory, kanaal=kanaal, url=url), title=stream_name, art=R(CHANNELS[kanaal]['art'])))
 		
 	if len(oc) == 0:
@@ -263,17 +231,33 @@ def GetShows(kanaal, url, style):
 				episode_name = str(episodes.xpath('./div/h2/a')[0].text)
 				episode_id =  str(CHANNELS[kanaal]['base'] + episodes.xpath('./a')[0].get('href'))
 				episode_thumb = str(CHANNELS[kanaal]['base'] + episodes.xpath('./a/img')[0].get('src'))
+				try:
+					clip_date	= episodes.xpath('./div/p/a')[1].text
+				except:
+					clip_date 	= "00 / 00:00"			
 			elif style == 'Parsed':
 				episode_name = str(episodes.xpath('./div/h2')[0].text)
 				episode_id =  str(CHANNELS[kanaal]['base'] + episodes.xpath('./a')[0].get('href'))
 				episode_thumb = str(CHANNELS[kanaal]['base'] + episodes.xpath('./a/img')[0].get('src'))
+				try:
+					clip_date	= episodes.xpath('./div/p')[0].text
+				except:
+					clip_date 	= "00 / 00:00"
 			elif style == 'Afleveringen':
 				episode_name = str(episodes.xpath('./div/h2')[0].text)
 				episode_id =  str(CHANNELS[kanaal]['base'] + episodes.xpath('./a')[0].get('href'))
 				episode_thumb = str(CHANNELS[kanaal]['base'] + episodes.xpath('./a/img')[0].get('src'))
+				try:
+					clip_date	= episodes.xpath('./div/p')[0].text
+				except:
+					clip_date 	= "00 / 00:00"
 			else:
 				continue
 
+			clip_date, clip_length = clip_date.split('/')
+			clip_length = clip_length.replace('min', '')
+			clip_length = TimeToMilliseconds(time=clip_length)
+			
 			video = VIDEOMATCH.match(episode_id)
 		
 			if not video:
@@ -282,6 +266,7 @@ def GetShows(kanaal, url, style):
 			oc.add(VideoClipObject(
 				url = episode_id,
 				title = episode_name,
+				duration = clip_length,
 				thumb=Resource.ContentsOfURLWithFallback(url=episode_thumb, fallback=CHANNELS[kanaal]['icon'])
 			))
 	
@@ -299,3 +284,15 @@ def GetShows(kanaal, url, style):
 					oc.add(DirectoryObject(key=Callback(GetShows, kanaal=kanaal, url=url, style='Clips'), title=L('More'), thumb=R(ICON_MORE), art=R(CHANNELS[kanaal]['art'])))
 	
 	return oc
+	
+###################################################################################################	
+def TimeToMilliseconds(time):
+
+	milliseconds  = 0
+	duration = time.split(':')
+	duration.reverse()
+
+	for i in range(0, len(duration)):
+		milliseconds += int(duration[i]) * (60**i) * 1000
+
+	return milliseconds
