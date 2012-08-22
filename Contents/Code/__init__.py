@@ -132,6 +132,7 @@ def Recent(kanaal, url, pagenr):
 
 		clip_date, clip_length = clip_date.split('/')
 		clip_length = clip_length.replace('min', '')
+		clip_length = clip_length.replace('uur', '')
 		clip_length = TimeToMilliseconds(time=clip_length)
 
 		oc.add(VideoClipObject(
